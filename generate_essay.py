@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
+# import os
+# print(os.getenv('GEMINI_API_KEY'))
 
 from agents.research_agent import research_agent
 from agents.writer_agent import writer_agent
@@ -29,21 +31,45 @@ def safe_json_load(text: str):
 # ----------------------------
 # IMAGE FETCHING LOGIC (NEW - IMPORTANT)
 # ----------------------------
+USED_IMAGES = set()
+
+
 def get_image_from_keywords(keywords):
     """
-    Try keywords in priority order until image is found.
+    Try keywords in priority order.
+    Avoid duplicate images.
     """
+
+    global USED_IMAGES
+
     for kw in keywords:
+
         result = image_search_tool.invoke({"query": kw})
-        if result.get("image_url"):
-            return result["image_url"]
+
+        image_url = result.get("image_url")
+
+        # skip duplicates
+        if image_url and image_url not in USED_IMAGES:
+
+            USED_IMAGES.add(image_url)
+
+            return image_url
 
     # FINAL FALLBACK
-    return image_search_tool.invoke({
+    fallback = image_search_tool.invoke({
         "query": "palestine documentary"
-    }).get("image_url")
+    })
 
+    fallback_url = fallback.get("image_url")
 
+    # avoid duplicate fallback too
+    if fallback_url and fallback_url not in USED_IMAGES:
+
+        USED_IMAGES.add(fallback_url)
+
+        return fallback_url
+
+    return None
 # ----------------------------
 # MAIN PIPELINE
 # ----------------------------
@@ -82,7 +108,7 @@ Write a structured essay in JSON format.
     print(essay_data)
 
 
-    print("\n🧠 Step 3: Analyzing essay...\n")
+    print("\n Step 3: Analyzing essay...\n")
 
     analysis = analyzer_agent.invoke({
         "messages": [
@@ -93,7 +119,7 @@ Write a structured essay in JSON format.
     analysis_data = safe_json_load(analysis["messages"][-1].content)
     print(analysis_data)
 
-    print("\n🖼️ Step 4: Fetching images...\n")
+    print("\n Step 4: Fetching images...\n")
 
     combined_sections = []
 

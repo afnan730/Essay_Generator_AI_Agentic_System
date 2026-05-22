@@ -4,7 +4,7 @@ from config.model import ANALYZER_MODEL, GEMINI_MODEL
 
 
 analyzer_agent = create_agent(
-    model=ANALYZER_MODEL,
+    model=GEMINI_MODEL,
     tools=[],
     system_prompt="""
 You are a semantic paragraph analyzer.
@@ -18,6 +18,7 @@ For every section:
 IMPORTANT:
 - The FIRST keyword must be the BEST visual representation
 - Add priority score for each keyword
+- ADD palestine and gaza keyword in each section and give it high priority
 - Higher priority = more accurate visual match
 - Prefer realistic documentary-style imagery
 - Avoid generic keywords
